@@ -1,0 +1,177 @@
+exit all
+configure
+#--------------------------------------------------
+echo "System Configuration"
+#--------------------------------------------------
+    system
+        name "R1"
+        chassis-mode d
+        dns
+        exit
+        snmp
+        exit
+        time
+            sntp
+                shutdown
+            exit
+            zone UTC
+        exit
+        thresholds
+            rmon
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "System Security Configuration"
+#--------------------------------------------------
+    system
+        security
+            no per-peer-queuing
+            cpu-protection
+                link-specific-rate max
+                policy 254 create
+                exit
+                policy 255 create
+                exit
+                port-overall-rate 15000
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "Log Configuration"
+#--------------------------------------------------
+    log
+    exit
+#--------------------------------------------------
+echo "System Security Cpm Hw Filters and PKI Configuration"
+#--------------------------------------------------
+    system
+        security
+        exit
+    exit
+#--------------------------------------------------
+echo "QoS Policy Configuration"
+#--------------------------------------------------
+    qos
+    exit
+#--------------------------------------------------
+echo "Card Configuration"
+#--------------------------------------------------
+    card 1
+        card-type iom3-xp-b
+        mda 1
+            mda-type m5-1gb-sfp-b
+            no shutdown
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "Port Configuration"
+#--------------------------------------------------
+    port 1/1/1
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/2
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/3
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/4
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/5
+        shutdown
+        ethernet
+        exit
+    exit
+#--------------------------------------------------
+echo "System Sync-If-Timing Configuration"
+#--------------------------------------------------
+    system
+        sync-if-timing
+            begin
+            commit
+        exit
+    exit
+#--------------------------------------------------
+echo "Management Router Configuration"
+#--------------------------------------------------
+    router management
+    exit
+
+#--------------------------------------------------
+echo "Router (Network Side) Configuration"
+#--------------------------------------------------
+    router
+        interface "loop1"
+            address 172.16.1.1/32
+            loopback
+            no shutdown
+        exit
+        interface "system"
+            address 10.10.10.1/32
+            ipv6
+                address fc00::1/128
+            exit
+            no shutdown
+        exit
+        interface "to_R2"
+            address 10.0.0.0/31
+            port 1/1/1
+            ipv6
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+        interface "to_R2_backup"
+            address 10.0.0.2/31
+            port 1/1/2
+            ipv6
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+        ecmp 2
+#--------------------------------------------------
+echo "Static Route Configuration"
+#--------------------------------------------------
+        static-route 10.10.10.2/32 next-hop 10.0.0.1 bfd-enable
+        static-route 10.10.10.2/32 next-hop 10.0.0.3 bfd-enable
+        static-route 192.168.1.0/24 black-hole
+#--------------------------------------------------
+echo "Static IPv6 Route Configuration"
+#--------------------------------------------------
+        static-route fc00::2/128 next-hop fe80::5200:ff:fe02:1-"to_R2"
+#--------------------------------------------------
+echo "Web Portal Protocol Configuration"
+#--------------------------------------------------
+    exit
+
+#--------------------------------------------------
+echo "Service Configuration"
+#--------------------------------------------------
+    service
+        customer 1 create
+            description "Default customer"
+        exit
+    exit
+#--------------------------------------------------
+echo "Router (Service Side) Configuration"
+#--------------------------------------------------
+    router
+#--------------------------------------------------
+echo "WLAN Gateway Configuration"
+#--------------------------------------------------
+    exit
+
+
+exit all
