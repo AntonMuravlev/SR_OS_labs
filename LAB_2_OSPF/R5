@@ -1,0 +1,272 @@
+ 
+# TiMOS-B-12.0.R6 both/i386 ALCATEL SR 7750 Copyright (c) 2000-2014 Alcatel-Lucent.
+# All rights reserved. All use subject to applicable license agreements.
+# Built on Tue Sep 30 11:10:17 PDT 2014 by builder in /rel12.0/b1/R6/panos/main
+
+# Generated TUE APR 06 12:04:27 2021 UTC
+
+exit all
+configure
+#--------------------------------------------------
+echo "System Configuration"
+#--------------------------------------------------
+    system
+        name "R5"
+        chassis-mode d
+        dns
+        exit
+        snmp
+        exit
+        time
+            sntp
+                shutdown
+            exit
+            zone UTC 
+        exit
+        thresholds
+            rmon
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "System Security Configuration"
+#--------------------------------------------------
+    system
+        security
+            no per-peer-queuing
+            cpu-protection
+                link-specific-rate max
+                policy 254 create
+                exit
+                policy 255 create
+                exit
+                port-overall-rate 15000 
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "Log Configuration"
+#--------------------------------------------------
+    log 
+    exit 
+#--------------------------------------------------
+echo "System Security Cpm Hw Filters and PKI Configuration"
+#--------------------------------------------------
+    system
+        security
+        exit
+    exit
+#--------------------------------------------------
+echo "QoS Policy Configuration"
+#--------------------------------------------------
+    qos
+    exit
+#--------------------------------------------------
+echo "Card Configuration"
+#--------------------------------------------------
+    card 1
+        card-type iom3-xp-b
+        mda 1
+            mda-type m5-1gb-sfp-b
+            no shutdown
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "Port Configuration"
+#--------------------------------------------------
+    port 1/1/1
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/2
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/3
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/4
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/5
+        shutdown
+        ethernet
+        exit
+    exit
+#--------------------------------------------------
+echo "System Sync-If-Timing Configuration"
+#--------------------------------------------------
+    system
+        sync-if-timing
+            begin
+            commit
+        exit
+    exit
+#--------------------------------------------------
+echo "Management Router Configuration"
+#--------------------------------------------------
+    router management
+    exit
+
+#--------------------------------------------------
+echo "Router (Network Side) Configuration"
+#--------------------------------------------------
+    router 
+        interface "loop1"
+            address 172.16.3.1/24
+            loopback
+            no shutdown
+        exit
+        interface "loop_v6"
+            loopback
+            ipv6
+                address fc01::2/128 
+            exit
+            no shutdown
+        exit
+        interface "system"
+            address 10.10.10.5/32
+            ipv6
+                address fc00::5/128 
+            exit
+            no shutdown
+        exit
+        interface "to_R1"
+            address 10.0.0.7/31
+            port 1/1/3
+            ipv6
+                bfd 1000 receive 1000 multiplier 3
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+        interface "to_R2"
+            address 10.0.0.9/31
+            port 1/1/4
+            ipv6
+                bfd 1000 receive 1000 multiplier 3
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+            asbr
+            export "EXPORT_to_OSPF"
+            area 0.0.0.2
+                interface "system"
+                    no shutdown
+                exit
+                interface "to_R1"
+                    interface-type point-to-point
+                    authentication-type password
+                    authentication-key "pP4cByn9bm1WVEQrtxltBiXY4Qy9m61k" hash2
+                    bfd-enable 
+                    no shutdown
+                exit
+                interface "to_R2"
+                    interface-type point-to-point
+                    authentication-type password
+                    authentication-key "pP4cByn9bm1WVEQrtxltBicsN7U1Gehh" hash2
+                    bfd-enable 
+                    no shutdown
+                exit
+            exit
+        exit
+#--------------------------------------------------
+echo "OSPFv3 Configuration"
+#--------------------------------------------------
+        ospf3
+            asbr
+            export "EXPORT_to_OSPF3"
+            area 0.0.0.2
+                interface "system"
+                    no shutdown
+                exit
+                interface "to_R1"
+                    interface-type point-to-point
+                    bfd-enable 
+                    no shutdown
+                exit
+                interface "to_R2"
+                    interface-type point-to-point
+                    bfd-enable 
+                    no shutdown
+                exit
+            exit
+        exit
+#--------------------------------------------------
+echo "Web Portal Protocol Configuration"
+#--------------------------------------------------
+    exit
+
+#--------------------------------------------------
+echo "Service Configuration"
+#--------------------------------------------------
+    service
+        customer 1 create
+            description "Default customer"
+        exit
+    exit
+#--------------------------------------------------
+echo "Router (Service Side) Configuration"
+#--------------------------------------------------
+    router 
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+        exit
+#--------------------------------------------------
+echo "OSPFv3 Configuration"
+#--------------------------------------------------
+        ospf3
+        exit
+#--------------------------------------------------
+echo "Policy Configuration"
+#--------------------------------------------------
+        policy-options
+            begin
+            prefix-list "PL_loop"
+                prefix 172.16.3.0/24 exact
+            exit
+            prefix-list "PL_loop_v6"
+                prefix fc01::2/128 exact
+            exit
+            policy-statement "EXPORT_to_OSPF"
+                entry 10
+                    from
+                        prefix-list "PL_loop"
+                    exit
+                    action accept
+                    exit
+                exit
+                default-action reject
+            exit
+            policy-statement "EXPORT_to_OSPF3"
+                entry 10
+                    from
+                        prefix-list "PL_loop_v6"
+                    exit
+                    action accept
+                    exit
+                exit
+                default-action reject
+            exit
+            commit
+        exit
+    exit
+
+
+exit all
+
+
