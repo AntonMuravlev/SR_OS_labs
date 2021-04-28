@@ -1,0 +1,279 @@
+ 
+# TiMOS-B-12.0.R6 both/i386 ALCATEL SR 7750 Copyright (c) 2000-2014 Alcatel-Lucent.
+# All rights reserved. All use subject to applicable license agreements.
+# Built on Tue Sep 30 11:10:17 PDT 2014 by builder in /rel12.0/b1/R6/panos/main
+
+# Generated WED APR 28 10:41:45 2021 UTC
+
+exit all
+configure
+#--------------------------------------------------
+echo "System Configuration"
+#--------------------------------------------------
+    system
+        name "R6"
+        chassis-mode d
+        dns
+        exit
+        snmp
+        exit
+        time
+            sntp
+                shutdown
+            exit
+            zone UTC 
+        exit
+        thresholds
+            rmon
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "System Security Configuration"
+#--------------------------------------------------
+    system
+        security
+            no per-peer-queuing
+            cpu-protection
+                link-specific-rate max
+                policy 254 create
+                exit
+                policy 255 create
+                exit
+                port-overall-rate 15000 
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "Log Configuration"
+#--------------------------------------------------
+    log 
+    exit 
+#--------------------------------------------------
+echo "System Security Cpm Hw Filters and PKI Configuration"
+#--------------------------------------------------
+    system
+        security
+        exit
+    exit
+#--------------------------------------------------
+echo "QoS Policy Configuration"
+#--------------------------------------------------
+    qos
+    exit
+#--------------------------------------------------
+echo "Card Configuration"
+#--------------------------------------------------
+    card 1
+        card-type iom3-xp-b
+        mda 1
+            mda-type m5-1gb-sfp-b
+            no shutdown
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "Port Configuration"
+#--------------------------------------------------
+    port 1/1/1
+        ethernet
+            mode access
+        exit
+        no shutdown
+    exit
+    port 1/1/2
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/3
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/4
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/5
+        ethernet
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "System Sync-If-Timing Configuration"
+#--------------------------------------------------
+    system
+        sync-if-timing
+            begin
+            commit
+        exit
+    exit
+#--------------------------------------------------
+echo "Management Router Configuration"
+#--------------------------------------------------
+    router management
+    exit
+
+#--------------------------------------------------
+echo "Router (Network Side) Configuration"
+#--------------------------------------------------
+    router 
+        interface "loop1"
+            address 172.16.1.1/24
+            loopback
+            no shutdown
+        exit
+        interface "system"
+            address 10.10.10.6/32
+            ipv6
+                address fc00::6/128 
+            exit
+            no shutdown
+        exit
+        interface "to_R4"
+            address 10.0.0.11/31
+            port 1/1/4
+            ipv6
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+        interface "to_R5"
+            address 10.0.0.13/31
+            port 1/1/5
+            ipv6
+            exit
+            bfd 1000 receive 1000 multiplier 3
+            no shutdown
+        exit
+        autonomous-system 100
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+            traffic-engineering
+            area 0.0.0.0
+                interface "system"
+                    no shutdown
+                exit
+                interface "to_R4"
+                    interface-type point-to-point
+                    no shutdown
+                exit
+                interface "to_R5"
+                    interface-type point-to-point
+                    no shutdown
+                exit
+            exit
+        exit
+#--------------------------------------------------
+echo "MPLS Configuration"
+#--------------------------------------------------
+        mpls
+            interface "system"
+                no shutdown
+            exit
+            interface "to_R4"
+                no shutdown
+            exit
+            interface "to_R5"
+                no shutdown
+            exit
+        exit
+#--------------------------------------------------
+echo "RSVP Configuration"
+#--------------------------------------------------
+        rsvp
+            interface "system"
+                no shutdown
+            exit
+            interface "to_R4"
+                no shutdown
+            exit
+            interface "to_R5"
+                no shutdown
+            exit
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "MPLS LSP Configuration"
+#--------------------------------------------------
+        mpls
+            path "loose"
+                no shutdown
+            exit
+            path "strict_to_R1"
+                hop 1 10.10.10.5 strict
+                hop 2 10.10.10.3 strict
+                hop 3 10.10.10.4 strict
+                hop 4 10.10.10.2 strict
+                no shutdown
+            exit
+            lsp "to_R1"
+                to 10.10.10.1
+                primary "strict_to_R1"
+                exit
+                no shutdown
+            exit
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "Web Portal Protocol Configuration"
+#--------------------------------------------------
+    exit
+
+#--------------------------------------------------
+echo "Service Configuration"
+#--------------------------------------------------
+    service
+        customer 1 create
+            description "Default customer"
+        exit
+    exit
+#--------------------------------------------------
+echo "Router (Service Side) Configuration"
+#--------------------------------------------------
+    router 
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+        exit
+#--------------------------------------------------
+echo "Policy Configuration"
+#--------------------------------------------------
+        policy-options
+            begin
+            prefix-list "PL_IPv6"
+                prefix fc00::6/128 exact
+            exit
+            prefix-list "PL_loops"
+                prefix 172.16.1.0/24 exact
+            exit
+            policy-statement "EXPORT_iBGP"
+                entry 10
+                    from
+                        prefix-list "PL_loops"
+                    exit
+                    action accept
+                    exit
+                exit
+                entry 20
+                    from
+                        prefix-list "PL_IPv6"
+                    exit
+                    action accept
+                    exit
+                exit
+                default-action reject
+            exit
+            commit
+        exit
+    exit
+
+
+exit all
+
+
