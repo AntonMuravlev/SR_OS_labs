@@ -1,0 +1,304 @@
+ 
+# TiMOS-B-12.0.R6 both/i386 ALCATEL SR 7750 Copyright (c) 2000-2014 Alcatel-Lucent.
+# All rights reserved. All use subject to applicable license agreements.
+# Built on Tue Sep 30 11:10:17 PDT 2014 by builder in /rel12.0/b1/R6/panos/main
+
+# Generated TUE MAY 11 12:21:37 2021 UTC
+
+exit all
+configure
+#--------------------------------------------------
+echo "System Configuration"
+#--------------------------------------------------
+    system
+        name "R6"
+        chassis-mode d
+        dns
+        exit
+        snmp
+        exit
+        time
+            sntp
+                shutdown
+            exit
+            zone UTC 
+        exit
+        thresholds
+            rmon
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "System Security Configuration"
+#--------------------------------------------------
+    system
+        security
+            no per-peer-queuing
+            cpu-protection
+                link-specific-rate max
+                policy 254 create
+                exit
+                policy 255 create
+                exit
+                port-overall-rate 15000 
+            exit
+        exit
+    exit
+#--------------------------------------------------
+echo "Log Configuration"
+#--------------------------------------------------
+    log 
+    exit 
+#--------------------------------------------------
+echo "System Security Cpm Hw Filters and PKI Configuration"
+#--------------------------------------------------
+    system
+        security
+        exit
+    exit
+#--------------------------------------------------
+echo "QoS Policy Configuration"
+#--------------------------------------------------
+    qos
+    exit
+#--------------------------------------------------
+echo "Card Configuration"
+#--------------------------------------------------
+    card 1
+        card-type iom3-xp-b
+        mda 1
+            mda-type m5-1gb-sfp-b
+            no shutdown
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "Port Configuration"
+#--------------------------------------------------
+    port 1/1/1
+        ethernet
+            mode access
+        exit
+        no shutdown
+    exit
+    port 1/1/2
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/3
+        shutdown
+        ethernet
+        exit
+    exit
+    port 1/1/4
+        ethernet
+        exit
+        no shutdown
+    exit
+    port 1/1/5
+        ethernet
+        exit
+        no shutdown
+    exit
+#--------------------------------------------------
+echo "System Sync-If-Timing Configuration"
+#--------------------------------------------------
+    system
+        sync-if-timing
+            begin
+            commit
+        exit
+    exit
+#--------------------------------------------------
+echo "Management Router Configuration"
+#--------------------------------------------------
+    router management
+    exit
+
+#--------------------------------------------------
+echo "Router (Network Side) Configuration"
+#--------------------------------------------------
+    router 
+        if-attribute
+            srlg-group "GREEN" value 10
+            srlg-group "RED" value 5
+        exit
+        interface "system"
+            address 10.10.10.6/32
+            no shutdown
+        exit
+        interface "to_R4"
+            address 10.0.0.11/31
+            port 1/1/4
+            bfd 100 receive 100 multiplier 3
+            no shutdown
+        exit
+        interface "to_R5"
+            address 10.0.0.13/31
+            port 1/1/5
+            bfd 100 receive 100 multiplier 3
+            no shutdown
+        exit
+        autonomous-system 100
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+            traffic-engineering
+            area 0.0.0.0
+                interface "system"
+                    no shutdown
+                exit
+                interface "to_R4"
+                    interface-type point-to-point
+                    bfd-enable 
+                    no shutdown
+                exit
+                interface "to_R5"
+                    interface-type point-to-point
+                    bfd-enable 
+                    no shutdown
+                exit
+            exit
+        exit
+#--------------------------------------------------
+echo "MPLS Configuration"
+#--------------------------------------------------
+        mpls
+            interface "system"
+                no shutdown
+            exit
+            interface "to_R4"
+                srlg-group "RED"
+                no shutdown
+            exit
+            interface "to_R5"
+                srlg-group "GREEN"
+                no shutdown
+            exit
+        exit
+#--------------------------------------------------
+echo "RSVP Configuration"
+#--------------------------------------------------
+        rsvp
+            interface "system"
+                no shutdown
+            exit
+            interface "to_R4"
+                bfd-enable
+                no shutdown
+            exit
+            interface "to_R5"
+                bfd-enable
+                no shutdown
+            exit
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "MPLS LSP Configuration"
+#--------------------------------------------------
+        mpls
+            path "loose"
+                no shutdown
+            exit
+            path "sec_loose"
+                no shutdown
+            exit
+            path "sec_strict"
+                hop 1 10.10.10.4 strict
+                hop 2 10.10.10.3 strict
+                hop 3 10.10.10.1 strict
+                no shutdown
+            exit
+            lsp "to_R1"
+                shutdown
+                to 10.10.10.1
+                cspf
+                primary "loose"
+                exit
+                secondary "sec_loose"
+                    standby
+                    srlg
+                exit
+                secondary "sec_strict"
+                    standby
+                exit
+            exit
+            lsp "to_R1_FRR_onetoone"
+                shutdown
+                to 10.10.10.1
+                cspf
+                fast-reroute one-to-one
+                exit
+                primary "loose"
+                exit
+            exit
+            lsp "to_R1_FRR_facility"
+                to 10.10.10.1
+                cspf
+                fast-reroute facility
+                exit
+                primary "loose"
+                exit
+                no shutdown
+            exit
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "LDP Configuration"
+#--------------------------------------------------
+        ldp
+            interface-parameters
+            exit
+            targeted-session
+            exit
+            no shutdown
+        exit
+#--------------------------------------------------
+echo "Web Portal Protocol Configuration"
+#--------------------------------------------------
+    exit
+
+#--------------------------------------------------
+echo "Service Configuration"
+#--------------------------------------------------
+    service
+        sdp 100 mpls create
+            far-end 10.10.10.1
+            lsp "to_R1_FRR_facility"
+            keep-alive
+                shutdown
+            exit
+            no shutdown
+        exit
+        customer 1 create
+            description "Default customer"
+        exit
+        epipe 100 customer 1 create
+            sap 1/1/1 create
+            exit
+            spoke-sdp 100:100 create
+                no shutdown
+            exit
+            no shutdown
+        exit
+    exit
+#--------------------------------------------------
+echo "Router (Service Side) Configuration"
+#--------------------------------------------------
+    router 
+#--------------------------------------------------
+echo "OSPFv2 Configuration"
+#--------------------------------------------------
+        ospf
+        exit
+#--------------------------------------------------
+echo "WLAN Gateway Configuration"
+#--------------------------------------------------
+    exit
+
+
+exit all
+
+
